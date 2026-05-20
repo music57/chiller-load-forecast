@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chiller_forecast
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: chiller_forecast
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./models_saved:/app/models_saved
+      - ./data:/app/data
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      API_BASE: http://api:8000/api/v1
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

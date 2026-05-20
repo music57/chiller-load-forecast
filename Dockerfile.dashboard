@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install CPU-only torch first to avoid pulling 2GB+ of NVIDIA CUDA packages
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.4.1
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ src/
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "src/dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

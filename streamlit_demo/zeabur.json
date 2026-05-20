@@ -1,0 +1,11 @@
+{
+  "build": {
+    "command": "docker"
+  },
+  "deploy": {
+    "type": "web",
+    "ports": [
+      { "port": 8501, "protocol": "http" }
+    ]
+  }
+}

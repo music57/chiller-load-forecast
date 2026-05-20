@@ -1,0 +1,20 @@
+{
+  "building_id": 171,
+  "site_id": 2,
+  "split_date": "2018-01-01",
+  "train_range": [
+    "2016-01-08 00:00:00",
+    "2017-12-31 23:00:00"
+  ],
+  "test_range": [
+    "2018-01-01 00:00:00",
+    "2018-12-31 23:00:00"
+  ],
+  "train_rows": 17376,
+  "test_rows": 8760,
+  "lightgbm_holdout_rmse": 37.71798783212726,
+  "lightgbm_holdout_mae": 25.96060896589186,
+  "lstm_holdout_rmse": 170.9324148232569,
+  "lstm_holdout_mae": 133.06565389386506,
+  "data_source_note": "2016 from ASHRAE GEPIII train.csv; 2017 from khoongweihao/ashrae-leak-data-station-2 (post-competition leaked ground truth)"
+}

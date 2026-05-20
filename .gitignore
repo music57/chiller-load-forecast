@@ -1,0 +1,59 @@
+# ===== Large data (NOT for git) =====
+data/raw/
+data/processed/
+
+# ===== ML artifacts (local-only, except demo subset) =====
+mlruns/
+models_saved/
+# Demo subset IS pushed for deployment:
+!streamlit_demo/models/
+!streamlit_demo/data/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.log
+
+# ===== Environments =====
+.env
+.venv
+env/
+venv/
+ENV/
+.python-version
+
+# ===== Notebooks =====
+notebooks/.ipynb_checkpoints/
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ===== Build output =====
+presentation/*.pdf
+presentation/slides_png/
+presentation/academic_png/
+streamlit_demo/train.log
+
+# ===== Secrets (never commit) =====
+*kaggle.json
+**/.kaggle/
+*secrets*
+*.pem
+*.key
+
+# ===== Docker =====
+*.tar
+dist/
+build/
