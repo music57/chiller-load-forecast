@@ -16,10 +16,11 @@ APP_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_DIR))
 sys.path.insert(0, str(APP_DIR.parent))
 
-from src.data.preprocessing import clean_data  # noqa: F401
-from src.data.features import build_features, get_feature_columns  # noqa: F401
+# Lightweight runtime — no torch / lightgbm imported.
+# Predictions are pre-computed; see precompute_predictions.py
 
 DATA_FILE  = APP_DIR / "data" / "building_171.parquet"
+PRED_FILE  = APP_DIR / "data" / "predictions.parquet"
 MODELS_DIR = APP_DIR / "models"
 META_FILE  = MODELS_DIR / "split_meta.json"
 FEAT_FILE  = MODELS_DIR / "feature_columns.json"
@@ -533,19 +534,12 @@ def load_meta() -> dict:
 def load_feature_cols() -> list[str]:
     return json.loads(FEAT_FILE.read_text())
 
-@st.cache_resource
-def load_lightgbm():
-    from src.models.lgbm_model import LGBMForecaster
-    m = LGBMForecaster()
-    m.load(str(MODELS_DIR / "lightgbm"))
-    return m
-
-@st.cache_resource
-def load_lstm():
-    from src.models.lstm_model import LSTMForecaster
-    m = LSTMForecaster()
-    m.load(str(MODELS_DIR / "lstm"))
-    return m
+@st.cache_data
+def load_predictions() -> pd.DataFrame:
+    """Pre-computed predictions lookup table — replaces runtime model inference."""
+    df = pd.read_parquet(PRED_FILE)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    return df.set_index("timestamp").sort_index()
 
 
 def get_tou_rate(ts: pd.Timestamp) -> float:
@@ -559,25 +553,18 @@ def get_tou_rate(ts: pd.Timestamp) -> float:
     return TOU_RATES["non_summer_peak"] if is_peak else (TOU_RATES["non_summer_offpeak"] if is_off else TOU_RATES["non_summer_mid"])
 
 
-def predict_at(model_name, df_full, as_of, feature_cols, horizon=6):
-    end = as_of
-    start = end - pd.Timedelta(hours=400)
-    df = df_full[(df_full["timestamp"] >= start) & (df_full["timestamp"] <= end)].copy()
-    df = df.dropna(subset=feature_cols).reset_index(drop=True)
-    if len(df) < 60:
-        raise ValueError(f"Insufficient history at {as_of}: {len(df)} rows")
-
-    if model_name.lower() == "lightgbm":
-        model = load_lightgbm()
-        X = df.tail(1)[feature_cols].to_numpy()
-    else:
-        model = load_lstm()
-        X = df.tail(80)[feature_cols].to_numpy().astype("float32")
-
-    preds = model.predict(X)
-    if preds.ndim == 2:
-        preds = preds[-1]
-    return preds[:horizon]
+def predict_at(model_name, _df_full, as_of, _feature_cols, horizon=6):
+    """Look up pre-computed predictions for `as_of` (no model inference at runtime)."""
+    preds_df = load_predictions()
+    if as_of not in preds_df.index:
+        # find the nearest pre-computed timestamp (within 1 hour)
+        closest = preds_df.index.get_indexer([as_of], method="nearest")[0]
+        if closest == -1 or abs((preds_df.index[closest] - as_of).total_seconds()) > 3600:
+            raise ValueError(f"No precomputed prediction at {as_of}")
+        as_of = preds_df.index[closest]
+    prefix = "lgbm_" if model_name.lower() == "lightgbm" else "lstm_"
+    cols = [f"{prefix}h{h+1}" for h in range(horizon)]
+    return preds_df.loc[as_of, cols].to_numpy()
 
 
 def style_plotly(fig, height=440):

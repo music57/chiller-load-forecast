@@ -1,20 +1,9 @@
-# Root-level Dockerfile so Zeabur auto-detects it.
-# Builds the Streamlit demo (streamlit_demo/app.py).
+# Lightweight runtime — uses pre-computed predictions, no torch/lightgbm needed.
+# Image drops from ~500 MB to ~150 MB, runtime memory drops from ~1 GB to ~300 MB.
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# LightGBM needs libgomp (OpenMP runtime)
-RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
- && rm -rf /var/lib/apt/lists/*
-
-# CPU-only torch first (skip 2GB+ NVIDIA CUDA packages)
-RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.4.1
-
-# Project-level src module imported by the app
-COPY src/ /app/src/
-
-# Demo files (data + trained models + the streamlit app)
 COPY streamlit_demo/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
