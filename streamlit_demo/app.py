@@ -516,6 +516,32 @@ st.markdown(f"""
         padding: 1.6rem 1.8rem;
         box-shadow: 0 1px 3px rgba(11,18,32,0.04);
     }}
+
+    /* Beautify Streamlit's native st.spinner — bigger, branded */
+    .stSpinner {{
+        background: linear-gradient(120deg, rgba(6,182,212,0.08), rgba(14,116,144,0.10));
+        border: 1px solid rgba(6,182,212,0.3);
+        border-radius: 14px;
+        padding: 1.4rem 1.6rem !important;
+        margin: 1.2rem 0 !important;
+    }}
+    .stSpinner > div {{
+        display: flex !important;
+        align-items: center;
+        gap: 1rem;
+    }}
+    .stSpinner i {{
+        border-color: {ACCENT} transparent {ACCENT} transparent !important;
+        width: 28px !important;
+        height: 28px !important;
+        border-width: 3px !important;
+    }}
+    .stSpinner > div > div {{
+        color: {INK} !important;
+        font-weight: 600 !important;
+        font-size: 1.02rem !important;
+        font-family: 'Inter', sans-serif !important;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -916,29 +942,17 @@ with cp2:
 </div>
 """, unsafe_allow_html=True)
 
-# Animated loading placeholder — ensure minimum visible duration for UX feedback
-loading_box = st.empty()
-loading_box.markdown(f"""
-<div class='loading-box'>
-  <div class='loading-spinner'></div>
-  <div>
-    <div class='loading-text'>使用 LightGBM & LSTM 模型運算中<span class='loading-dots'></span></div>
-    <div class='loading-sub'>building features · running inference · t = {as_of_ts}</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-_loading_start = time.time()
+# Visible loading state — st.spinner is the most reliable across browsers/proxies
 try:
-    lgbm_preds = predict_at("LightGBM", df_all, as_of_ts, feature_cols)
-    lstm_preds = predict_at("LSTM",     df_all, as_of_ts, feature_cols)
-    # Keep spinner visible at least 600 ms so user perceives the work
-    elapsed = time.time() - _loading_start
-    if elapsed < 0.6:
-        time.sleep(0.6 - elapsed)
-    loading_box.empty()
+    with st.spinner(f"🤖 使用 LightGBM & LSTM 模型運算中 ... (t = {as_of_ts})"):
+        _loading_start = time.time()
+        lgbm_preds = predict_at("LightGBM", df_all, as_of_ts, feature_cols)
+        lstm_preds = predict_at("LSTM",     df_all, as_of_ts, feature_cols)
+        # Force minimum 800ms so the spinner is clearly visible to the user
+        elapsed = time.time() - _loading_start
+        if elapsed < 0.8:
+            time.sleep(0.8 - elapsed)
 except Exception as e:
-    loading_box.empty()
     st.markdown(f"""
 <div class='err-box'>
   <div class='err-box-title'>⚠️ 預測失敗</div>
