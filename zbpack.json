@@ -1,0 +1,6 @@
+{
+  "build_command": "docker build -f Dockerfile -t app .",
+  "start_command": "streamlit run /app/app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true",
+  "build_type": "dockerfile",
+  "dockerfile_path": "Dockerfile"
+}
