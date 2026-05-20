@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -915,21 +916,26 @@ with cp2:
 </div>
 """, unsafe_allow_html=True)
 
-# Animated loading placeholder while models run
+# Animated loading placeholder — ensure minimum visible duration for UX feedback
 loading_box = st.empty()
 loading_box.markdown(f"""
 <div class='loading-box'>
   <div class='loading-spinner'></div>
   <div>
-    <div class='loading-text'>使用 LightGBM & LSTM 預測中<span class='loading-dots'></span></div>
+    <div class='loading-text'>使用 LightGBM & LSTM 模型運算中<span class='loading-dots'></span></div>
     <div class='loading-sub'>building features · running inference · t = {as_of_ts}</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
 
+_loading_start = time.time()
 try:
     lgbm_preds = predict_at("LightGBM", df_all, as_of_ts, feature_cols)
     lstm_preds = predict_at("LSTM",     df_all, as_of_ts, feature_cols)
+    # Keep spinner visible at least 600 ms so user perceives the work
+    elapsed = time.time() - _loading_start
+    if elapsed < 0.6:
+        time.sleep(0.6 - elapsed)
     loading_box.empty()
 except Exception as e:
     loading_box.empty()
