@@ -422,12 +422,36 @@ st.markdown(f"""
     /* ── Streamlit overrides ── */
     .stSlider [data-baseweb=slider] > div > div > div {{ background: {ACCENT} !important; }}
     .stSlider [role=slider] {{ background: {ACCENT} !important; box-shadow: 0 0 0 6px rgba(6,182,212,0.12) !important; }}
+
+    /* Date / text inputs — ensure text is readable */
     .stDateInput input, .stTextInput input {{
         border-radius: 8px !important;
-        border-color: {BORDER} !important;
+        border: 1px solid {BORDER} !important;
+        background: {SURFACE} !important;
+        color: {INK} !important;
+        font-weight: 600 !important;
+        font-family: 'Inter', 'JetBrains Mono', sans-serif !important;
+    }}
+    .stDateInput label, .stTextInput label, .stSlider label {{
+        color: {INK} !important;
+        font-weight: 600 !important;
+    }}
+
+    /* Expander — make the header label & arrow readable */
+    .stExpander, [data-testid="stExpander"] {{
+        border: 1px solid {BORDER} !important;
+        border-radius: 12px !important;
         background: {SURFACE} !important;
     }}
-    .stExpander {{ border: 1px solid {BORDER} !important; border-radius: 12px !important; background: {SURFACE} !important; }}
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary p,
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] > p,
+    .streamlit-expanderHeader, .streamlit-expanderHeader p {{
+        color: {INK} !important;
+        font-weight: 600 !important;
+        opacity: 1 !important;
+    }}
+    [data-testid="stExpander"] svg {{ fill: {INK} !important; }}
 
     /* Override default streamlit container border for our cards */
     [data-testid="stVerticalBlockBorderWrapper"] {{
@@ -1105,7 +1129,7 @@ except Exception as e:
 """, unsafe_allow_html=True)
     st.stop()
 
-history_start = as_of_ts - pd.Timedelta(hours=36)  # 36h history → forecast window more visible (1:6 ratio)
+history_start = as_of_ts - pd.Timedelta(hours=24)  # 24h history : 6h forecast = 4:1 (mobile-friendly)
 history = df_all[(df_all["timestamp"] >= history_start) & (df_all["timestamp"] <= as_of_ts)]
 future_ts = [as_of_ts + pd.Timedelta(hours=i + 1) for i in range(6)]
 future_actual = df_all[(df_all["timestamp"] > as_of_ts) & (df_all["timestamp"] <= as_of_ts + pd.Timedelta(hours=6))]
@@ -1116,13 +1140,13 @@ fig.add_vrect(x0=future_ts[0], x1=future_ts[-1],
               annotation_text="Forecast window (+1h ~ +6h)", annotation_position="top left",
               annotation=dict(font=dict(size=10, color=WARM, family="Inter")))
 fig.add_trace(go.Scatter(x=history["timestamp"], y=history["meter_reading"],
-                          mode="lines", name="Actual (history)",
+                          mode="lines", name="Actual past",
                           line=dict(color=INK, width=2.2)))
 if len(future_actual) > 0:
     bridge_ts = [history["timestamp"].iloc[-1]] + list(future_actual["timestamp"])
     bridge_v  = [history["meter_reading"].iloc[-1]] + list(future_actual["meter_reading"])
     fig.add_trace(go.Scatter(x=bridge_ts, y=bridge_v, mode="lines+markers",
-                              name="Actual (future)",
+                              name="Actual future",
                               line=dict(color=INK, width=2.2),
                               marker=dict(symbol="circle-open", size=10, line=dict(width=2))))
 fig.add_trace(go.Scatter(x=future_ts, y=lgbm_preds, mode="lines+markers", name="LightGBM",
