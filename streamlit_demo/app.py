@@ -54,6 +54,7 @@ st.set_page_config(
 )
 
 st.markdown(f"""
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -515,6 +516,130 @@ st.markdown(f"""
         border-radius: 16px;
         padding: 1.6rem 1.8rem;
         box-shadow: 0 1px 3px rgba(11,18,32,0.04);
+    }}
+
+    /* ═══════════════════════════════════════════════════════════
+       MOBILE RWD — tablet (≤ 1024px) and phone (≤ 640px)
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 1024px) {{
+        .main .block-container {{
+            padding: 0 1.2rem 4rem 1.2rem !important;
+            max-width: 100% !important;
+        }}
+        .hero-wrap {{
+            padding: 4rem 0 3rem 0;
+        }}
+        .hero-inner {{
+            padding: 0 1.5rem;
+        }}
+        .hero-title {{
+            font-size: clamp(1.8rem, 6vw, 2.5rem) !important;
+        }}
+        .hero-sub {{
+            font-size: 1rem !important;
+        }}
+        .hero-stats {{
+            grid-template-columns: repeat(3, 1fr) !important;
+        }}
+        .hero-stat {{
+            padding: 1rem 0.8rem !important;
+            border-right: 1px solid rgba(255,255,255,0.06) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }}
+        .hero-stat-value {{
+            font-size: 1.4rem !important;
+        }}
+        .hero-stat-label {{
+            font-size: 0.65rem !important;
+        }}
+        .section {{ margin-top: 4rem !important; }}
+        .section-title {{ font-size: 1.7rem !important; }}
+        .section-sub  {{ font-size: 0.98rem !important; }}
+        .grid-card, .grid-card-dark {{
+            padding: 1.3rem 1.1rem !important;
+            min-height: auto !important;
+        }}
+        .grid-card .num-large {{ font-size: 2rem !important; }}
+    }}
+
+    @media (max-width: 640px) {{
+        /* Phone: force every column row to stack */
+        [data-testid="stHorizontalBlock"] {{
+            flex-direction: column !important;
+            gap: 0.8rem !important;
+        }}
+        [data-testid="column"] {{
+            width: 100% !important;
+            flex: 0 0 100% !important;
+            min-width: 100% !important;
+        }}
+        .main .block-container {{
+            padding: 0 0.8rem 3rem 0.8rem !important;
+        }}
+        .hero-wrap {{
+            padding: 3rem 0 2.2rem 0;
+        }}
+        .hero-inner {{
+            padding: 0 1.2rem;
+        }}
+        .hero-eyebrow {{
+            font-size: 0.65rem !important;
+            letter-spacing: 0.2em !important;
+            padding: 0.3rem 0.7rem !important;
+        }}
+        .hero-title {{
+            font-size: clamp(1.5rem, 7vw, 2rem) !important;
+            line-height: 1.15 !important;
+        }}
+        .hero-sub {{
+            font-size: 0.92rem !important;
+            margin: 0.6rem 0 1.5rem 0 !important;
+        }}
+        .hero-stats {{
+            grid-template-columns: repeat(2, 1fr) !important;
+        }}
+        .hero-stat-value {{
+            font-size: 1.3rem !important;
+        }}
+
+        .section-eyebrow {{ font-size: 0.65rem !important; }}
+        .section-title {{ font-size: 1.4rem !important; }}
+        .section-sub {{ font-size: 0.92rem !important; line-height: 1.6 !important; }}
+
+        .grid-card, .grid-card-dark {{
+            padding: 1.2rem 1rem !important;
+            min-height: auto !important;
+        }}
+        .grid-card .num-large {{ font-size: 1.8rem !important; }}
+        .stat-block {{
+            min-height: 110px !important;
+            padding: 1rem !important;
+        }}
+        .stat-block-value {{ font-size: 1.6rem !important; }}
+
+        /* Slider area: stack control panel vertically */
+        .step-num {{ width: 28px !important; height: 28px !important; font-size: 0.9rem !important; }}
+        .step-title {{ font-size: 1.05rem !important; }}
+        .step-body {{ margin-left: 2.6rem !important; font-size: 0.88rem !important; }}
+
+        /* Callouts: tighter */
+        .callout {{ padding: 0.9rem 1rem !important; font-size: 0.88rem !important; }}
+
+        /* Nav pills wrap on phone */
+        .nav-pills {{ flex-wrap: wrap !important; padding: 0.6rem 0.8rem !important; }}
+        .nav-pills a {{ font-size: 0.75rem !important; padding: 0.3rem 0.7rem !important; }}
+
+        /* Tables/Plotly: ensure horizontal scroll if needed */
+        .stDataFrame, [data-testid="stPlotlyChart"] {{
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }}
+
+        /* Hide hover lift on touch devices (not useful) */
+        .grid-card:hover, .grid-card-dark:hover, .stat-block:hover {{
+            transform: none !important;
+            box-shadow: 0 2px 8px rgba(11,18,32,0.05) !important;
+        }}
     }}
 
     /* Beautify Streamlit's native st.spinner — bigger, branded */
