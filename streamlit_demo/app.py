@@ -563,15 +563,25 @@ st.markdown(f"""
     }}
 
     @media (max-width: 640px) {{
-        /* Phone: force every column row to stack */
+        /* Phone: force every column row to stack with proper gaps */
         [data-testid="stHorizontalBlock"] {{
             flex-direction: column !important;
-            gap: 0.8rem !important;
+            gap: 1.2rem !important;
+            margin-bottom: 1.5rem !important;
         }}
         [data-testid="column"] {{
             width: 100% !important;
             flex: 0 0 100% !important;
             min-width: 100% !important;
+            margin-bottom: 0.6rem !important;
+        }}
+        /* Reset gap-causing margins on nested blocks */
+        [data-testid="column"]:last-child {{
+            margin-bottom: 0 !important;
+        }}
+        /* Cards in stacked layout need explicit bottom margin */
+        .grid-card, .grid-card-dark, .stat-block {{
+            margin-bottom: 0.4rem !important;
         }}
         .main .block-container {{
             padding: 0 0.8rem 3rem 0.8rem !important;
@@ -720,10 +730,10 @@ def predict_at(model_name, _df_full, as_of, _feature_cols, horizon=6):
 
 
 def style_plotly(fig, height=440):
-    """Apply consistent modern styling to a Plotly figure."""
+    """Apply consistent modern styling to a Plotly figure. Auto-adapts to mobile."""
     fig.update_layout(
         height=height,
-        margin=dict(l=10, r=10, t=30, b=10),
+        margin=dict(l=10, r=10, t=60, b=10),  # extra top room for wrapped legend
         plot_bgcolor=SURFACE,
         paper_bgcolor=SURFACE,
         font=dict(family="Inter, sans-serif", color=TEXT, size=12),
@@ -732,11 +742,16 @@ def style_plotly(fig, height=440):
         legend=dict(
             orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0,
             font=dict(size=11), bgcolor="rgba(0,0,0,0)",
+            # itemwidth + traceorder help wrap on narrow screens
+            itemwidth=30,
         ),
         xaxis=dict(showgrid=True, gridcolor=SOFT_BG, gridwidth=1, zeroline=False,
-                   tickfont=dict(size=10, color=MUTED), title_font=dict(size=11, color=MUTED)),
+                   tickfont=dict(size=10, color=MUTED), title_font=dict(size=11, color=MUTED),
+                   automargin=True),
         yaxis=dict(showgrid=True, gridcolor=SOFT_BG, gridwidth=1, zeroline=False,
-                   tickfont=dict(size=10, color=MUTED), title_font=dict(size=11, color=MUTED)),
+                   tickfont=dict(size=10, color=MUTED), title_font=dict(size=11, color=MUTED),
+                   automargin=True),
+        autosize=True,
     )
     return fig
 
@@ -1090,7 +1105,7 @@ except Exception as e:
 """, unsafe_allow_html=True)
     st.stop()
 
-history_start = as_of_ts - pd.Timedelta(hours=72)
+history_start = as_of_ts - pd.Timedelta(hours=36)  # 36h history → forecast window more visible (1:6 ratio)
 history = df_all[(df_all["timestamp"] >= history_start) & (df_all["timestamp"] <= as_of_ts)]
 future_ts = [as_of_ts + pd.Timedelta(hours=i + 1) for i in range(6)]
 future_actual = df_all[(df_all["timestamp"] > as_of_ts) & (df_all["timestamp"] <= as_of_ts + pd.Timedelta(hours=6))]
